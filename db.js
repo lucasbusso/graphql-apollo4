@@ -1,24 +1,19 @@
-const persons = [
-  {
-    name: "Miguel",
-    phone: "123456",
-    street: "calle a",
-    city: "barcelona",
-    id: "234hjsdf-1244-daskh2"
-  },
-  {
-    name: "Lucas",
-    street: "calle b",
-    city: "madrid",
-    id: "234hjsdf-1244-daskh3"
-  },
-  {
-    name: "Federico",
-    phone: "123456",
-    street: "calle c",
-    city: "valencia",
-    id: "234hjsdf-1244-daskh4"
-  },
-]
+import mongoose from 'mongoose'
 
-export default persons
+const MONGODB_URI = `mongodb+srv://root:root@cluster0.xij5g0y.mongodb.net/?retryWrites=true&w=majority`
+
+//[MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by 
+//default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. 
+//Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+mongoose.set('strictQuery', true)
+
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('Conectado');
+}).catch(error => {
+  console.log(error.message);
+})
+

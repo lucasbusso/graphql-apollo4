@@ -1,11 +1,16 @@
-import {v1 as uuid} from "uuid"
 import { gql, UserInputError } from "apollo-server"
 import { ApolloServer } from "@apollo/server"
 import { startStandaloneServer } from '@apollo/server/standalone';
-import persons from "./db.js";
+import "./db.js";
+import Person from './models/person.js'
 
 
 const typeDefs = gql`
+  enum YesNo {
+    YES
+    NO
+  }
+
   type Address {
     street: String!
     city: String!
@@ -20,7 +25,7 @@ const typeDefs = gql`
 
   type Query {
     personCount: Int!
-    allPersons: [Person]!
+    allPersons(phone: YesNo): [Person]!
     findPerson(name: String!): Person
   }
 
@@ -31,27 +36,45 @@ const typeDefs = gql`
       street: String!
       city: String!
     ): Person
+    editNumber(
+        name: String!
+        phone: String!
+    ): Person
   }
 `
 
 const resolvers = {
   Query: {
-    personCount: () => persons.length,
-    allPersons: () => persons,
+    personCount: () => Person.collection.countDocuments(),
+    allPersons: async (root, args) => {
+      if(!args.phone) return Person.find({})
+      return Person.find({ phone: { $exists: args.phone === 'YES' } })
+    },
     findPerson: (root, args) => {
       const { name } = args
-      return persons.find(person => person.name === name)
+      return Person.findOne({ name })
     }
   },
   Mutation: {
-    addPerson: (root, args) => {
-      if(persons.find(person => person.name === args.name)) {
-        throw new UserInputError('Name already in use', {
-          invalidArgs: args.name
-        })
+    addPerson: async (root, args) => {
+      const person = new Person({ ...args })
+      try {
+        await person.save()
+      } catch (error) {
+        throw new UserInputError(error.message)
       }
-      const person = {...args, id: uuid()}
-      persons.push(person)
+      return person
+    },
+    editNumber: async (root, args) => {
+      const person = await Person.findOne({ name: args.name })
+      if(!person) return
+      person.phone = args.phone
+
+      try {
+        await person.save()
+      } catch (error) {
+        throw new UserInputError(error.message)
+      }
       return person
     }
   },
