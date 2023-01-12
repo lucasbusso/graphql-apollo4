@@ -1,9 +1,9 @@
 import { gql, UserInputError } from "apollo-server"
 import { ApolloServer } from "@apollo/server"
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { startStandaloneServer } from '@apollo/server/standalone'
 import "./db.js";
 import Person from './models/person.js'
-
+import User from "./models/user.js"
 
 const typeDefs = gql`
   enum YesNo {
@@ -23,10 +23,21 @@ const typeDefs = gql`
     id: ID!
   }
 
+  type User {
+    username: String!
+    friends: [Person]!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
+  }
+
   type Query {
     personCount: Int!
     allPersons(phone: YesNo): [Person]!
     findPerson(name: String!): Person
+    myself: User
   }
 
   type Mutation {
